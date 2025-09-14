@@ -93,7 +93,7 @@ if settings_category == "Database Management":
         st.markdown("#### Reinitialize Database")
         st.warning("⚠️ This will recreate all tables and add sample data")
 
-        if st.button("🔄 Reinitialize Database"):
+        if st.button("🔄 Reinitialize Database", key="reinit_db"):
             with st.spinner("Reinitializing database..."):
                 try:
                     if init_database():
@@ -106,19 +106,24 @@ if settings_category == "Database Management":
                     st.error(f"❌ Error: {str(e)}")
 
     with col2:
-        st.markdown("#### Add Sample Data")
-        st.info("Add sample students, subjects, and marks if database is empty")
-
-        if st.button("📝 Add Sample Data"):
-            with st.spinner("Adding sample data..."):
-                try:
-                    if initialize_sample_data():
-                        st.success("✅ Sample data added successfully!")
-                        st.rerun()
-                    else:
-                        st.error("❌ Failed to add sample data")
-                except Exception as e:
-                    st.error(f"❌ Error: {str(e)}")
+        st.markdown("#### Database Status")
+        st.info("View current database statistics and information")
+        
+        try:
+            sample_info = get_sample_data_info()
+            
+            if sample_info['student_count'] > 0 and sample_info['subject_count'] > 0 and sample_info['marks_count'] > 0:
+                st.success(f"📊 Current data: {sample_info['student_count']} students, {sample_info['subject_count']} subjects, {sample_info['marks_count']} marks")
+                
+                if sample_info['is_sample_data']:
+                    st.info("✅ Sample data detected")
+                else:
+                    st.info("📝 Custom data detected")
+            else:
+                st.info("📊 No data found in database")
+                
+        except Exception as e:
+            st.error(f"❌ Error checking data: {str(e)}")
 
     st.markdown("---")
 
@@ -131,7 +136,7 @@ if settings_category == "Database Management":
         st.markdown("#### Add Sample Data")
         st.info("Add sample students, subjects, and marks if database is empty")
         
-        if st.button("📝 Add Sample Data"):
+        if st.button("📝 Add Sample Data", key="add_sample_data_main"):
             with st.spinner("Adding sample data..."):
                 try:
                     if initialize_sample_data():
@@ -215,7 +220,7 @@ elif settings_category == "Data Import/Export":
 
     with col1:
         st.markdown("#### Export Students")
-        if st.button("📊 Export Students CSV", use_container_width=True):
+        if st.button("📊 Export Students CSV", use_container_width=True, key="export_students"):
             try:
                 students = Student.get_all_students()
                 if students:
@@ -234,7 +239,7 @@ elif settings_category == "Data Import/Export":
 
     with col2:
         st.markdown("#### Export Subjects")
-        if st.button("📚 Export Subjects CSV", use_container_width=True):
+        if st.button("📚 Export Subjects CSV", use_container_width=True, key="export_subjects"):
             try:
                 subjects = Subject.get_all_subjects()
                 if subjects:
@@ -253,7 +258,7 @@ elif settings_category == "Data Import/Export":
 
     with col3:
         st.markdown("#### Export Marks")
-        if st.button("📝 Export Marks CSV", use_container_width=True):
+        if st.button("📝 Export Marks CSV", use_container_width=True, key="export_marks"):
             try:
                 marks = Marks.get_all_marks()
                 if marks:
@@ -299,7 +304,7 @@ elif settings_category == "Data Import/Export":
                 st.write("Preview of uploaded data:")
                 st.dataframe(df.head())
 
-                if st.button("Import Students"):
+                if st.button("Import Students", key="import_students"):
                     st.info("Import functionality coming soon!")
             except Exception as e:
                 st.error(f"Error reading file: {str(e)}")
@@ -320,7 +325,7 @@ elif settings_category == "Data Import/Export":
                 st.write("Preview of uploaded data:")
                 st.dataframe(df.head())
 
-                if st.button("Import Subjects"):
+                if st.button("Import Subjects", key="import_subjects"):
                     st.info("Import functionality coming soon!")
             except Exception as e:
                 st.error(f"Error reading file: {str(e)}")
@@ -341,7 +346,7 @@ elif settings_category == "Data Import/Export":
                 st.write("Preview of uploaded data:")
                 st.dataframe(df.head())
 
-                if st.button("Import Marks"):
+                if st.button("Import Marks", key="import_marks"):
                     st.info("Import functionality coming soon!")
             except Exception as e:
                 st.error(f"Error reading file: {str(e)}")
@@ -498,7 +503,7 @@ elif settings_category == "Application Preferences":
         )
 
     # Save preferences
-    if st.button("💾 Save Preferences"):
+    if st.button("💾 Save Preferences", key="save_preferences"):
         # Store in session state
         st.session_state.update({
             'theme': theme,
@@ -515,7 +520,7 @@ elif settings_category == "Application Preferences":
     st.markdown("---")
 
     # Reset preferences
-    if st.button("🔄 Reset to Defaults"):
+    if st.button("🔄 Reset to Defaults", key="reset_preferences"):
         # Clear relevant session state
         keys_to_clear = [
             'theme', 'default_page_size', 'auto_refresh', 'compact_view',
@@ -551,7 +556,7 @@ elif settings_category == "Backup & Restore":
             help="Include application settings in backup"
         )
 
-        if st.button("🗂️ Create Full Backup", use_container_width=True):
+        if st.button("🗂️ Create Full Backup", use_container_width=True, key="create_backup"):
             with st.spinner("Creating backup..."):
                 try:
                     # Get all data
@@ -627,7 +632,7 @@ elif settings_category == "Backup & Restore":
                 help="⚠️ This will replace current data"
             )
 
-            if st.button("🔄 Restore Data", use_container_width=True):
+            if st.button("🔄 Restore Data", use_container_width=True, key="restore_data"):
                 if overwrite_existing:
                     st.warning("Restore functionality coming soon!")
                 else:
@@ -656,14 +661,14 @@ with st.sidebar:
     st.markdown("---")
     st.subheader("🚀 Quick Actions")
 
-    if st.button("🏠 Go to Dashboard", use_container_width=True):
+    if st.button("🏠 Go to Dashboard", use_container_width=True, key="sidebar_dashboard"):
         st.switch_page("app.py")
 
-    if st.button("👥 Manage Students", use_container_width=True):
+    if st.button("👥 Manage Students", use_container_width=True, key="sidebar_students"):
         st.switch_page("pages/1_Manage_Students.py")
 
-    if st.button("📝 Enter Marks", use_container_width=True):
+    if st.button("📝 Enter Marks", use_container_width=True, key="sidebar_marks"):
         st.switch_page("pages/3_Enter_Update_Marks.py")
 
-    if st.button("📊 View Analytics", use_container_width=True):
+    if st.button("📊 View Analytics", use_container_width=True, key="sidebar_analytics"):
         st.switch_page("pages/5_Class_Analytics.py")
